@@ -97,10 +97,43 @@
             </v-stepper>
         </v-layout>
         <v-container fluid>
-            <v-layout v-if="output" align-center justify-center row>
+            <v-layout v-if="table" align-center justify-center row>
                 <v-card>
                     <v-card-title>{{radioGroup}}</v-card-title>
-                    <v-card-text>{{output}}</v-card-text>
+                    <v-card-text>
+                        <v-data-table
+                                :headers="headers"
+                                :items="table"
+                                class="elevation-1"
+                        >
+                            <template v-slot:items="props">
+                                <td class="text-xs-right">{{ props.item.i }}</td>
+                                <td class="text-xs-right">{{ props.item.x }}</td>
+                                <td class="text-xs-right">{{ props.item.h }}</td>
+                                <td class="text-xs-right">{{ props.item.t }}</td>
+                            </template>
+                        </v-data-table>
+                        <!--<v-sheet
+                                class="v-sheet&#45;&#45;offset mx-auto"
+                                color="cyan"
+                                elevation="12"
+                                max-width="calc(100% - 32px)"
+                        >
+                            <v-sparkline
+                                    :labels="labels"
+                                    :value="values"
+                                    color="white"
+                                    line-width="2"
+                                    padding="16"
+                            ></v-sparkline>
+                        </v-sheet>-->
+                        <GChart
+                            type="LineChart"
+                            :data="chartData"
+                            :options="chartOptions"
+                            >
+                        </GChart>
+                    </v-card-text>
                 </v-card>
             </v-layout>
         </v-container>
@@ -108,6 +141,9 @@
 </template>
 
 <script>
+    import eulerForward from './methods';
+    import {GChart} from "vue-google-charts";
+
     export default {
         name: "Landing",
         data() {
@@ -120,13 +156,40 @@
                 start: null,
                 stop: null,
                 timestamp: null,
-                output: null
+                table: null,
+                headers: [{text: "i", value: "i"}, {text: "x", value: "x"},
+                    {text: "h", value: "h"}, {text: "t", value: "t"}],
+                labels: [],
+                values: [],
+                chartOptions: {
+                    chart: {
+                        hAxis: {
+                            title: 'Time'
+                        },
+                        vAxis: {
+                            title: 'X'
+                        },
+                        series: {
+                            1: {curveType: 'function'}
+                        }
+                    }
+                },
+                chartData: []
             }
+        },
+        components: {
+            GChart
         },
         methods: {
             runAlgo: function () {
-                this.output = "Hello";
+                this.table = eulerForward(parseFloat(this.start), parseFloat(this.stop), parseFloat(this.timestamp),
+                    parseFloat(this.inputA), parseFloat(this.inputB));
+                let chartData = [];
+                chartData.push(["Time", "X"]);
+                this.table.forEach(function (node) {
+                    chartData.push([node.t, node.x]);
+                });
+                this.chartData = chartData;
             }
         }
-    }
-</script>
+    } </script>
