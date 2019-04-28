@@ -34,7 +34,7 @@
                             Continue
                         </v-btn>
 
-                        <v-btn flat disabled="true">Cancel</v-btn>
+                        <v-btn flat :disabled=true>Cancel</v-btn>
                     </v-stepper-content>
 
                     <v-stepper-content step="2">
@@ -87,7 +87,7 @@
                         <v-btn
                                 color="primary"
                                 @click="runAlgo()"
-                                :disabled="(start == null) || (timestamp == null) || (stop == null)"
+                                :disabled="(this.start == null) || (this.timestamp == null) || (this.stop == null)"
                         >
                             Run
                         </v-btn>
@@ -104,6 +104,7 @@
                         <v-data-table
                                 :headers="headers"
                                 :items="table"
+                                align="left"
                                 class="elevation-1"
                         >
                             <template v-slot:items="props">
@@ -113,25 +114,14 @@
                                 <td class="text-xs-right">{{ props.item.t }}</td>
                             </template>
                         </v-data-table>
-                        <!--<v-sheet
-                                class="v-sheet&#45;&#45;offset mx-auto"
-                                color="cyan"
-                                elevation="12"
-                                max-width="calc(100% - 32px)"
-                        >
-                            <v-sparkline
-                                    :labels="labels"
-                                    :value="values"
-                                    color="white"
-                                    line-width="2"
-                                    padding="16"
-                            ></v-sparkline>
-                        </v-sheet>-->
+                        <v-divider></v-divider>
                         <GChart
-                            type="LineChart"
-                            :data="chartData"
-                            :options="chartOptions"
-                            >
+                                type="LineChart"
+                                :data="chartData"
+                                :options="chartOptions"
+                                class="elevation-1"
+                        >
+                        >
                         </GChart>
                     </v-card-text>
                 </v-card>
@@ -141,7 +131,8 @@
 </template>
 
 <script>
-    import eulerForward from './methods';
+    import eulerForward from './methodsEF';
+    import eulerBackward from './methodsEB';
     import {GChart} from "vue-google-charts";
 
     export default {
@@ -150,7 +141,7 @@
             return {
                 stepper: 0,
                 radioGroup: "Euler Forward",
-                availableAlgos: ["Euler Forward", "Euler Backwards", "Heun"],
+                availableAlgos: ["Euler Forward", "Euler Backward", "Heun"],
                 inputA: null,
                 inputB: null,
                 start: null,
@@ -182,14 +173,26 @@
         },
         methods: {
             runAlgo: function () {
-                this.table = eulerForward(parseFloat(this.start), parseFloat(this.stop), parseFloat(this.timestamp),
-                    parseFloat(this.inputA), parseFloat(this.inputB));
-                let chartData = [];
-                chartData.push(["Time", "X"]);
-                this.table.forEach(function (node) {
-                    chartData.push([node.t, node.x]);
-                });
-                this.chartData = chartData;
+                if (this.radioGroup === "Euler Forward") {
+                    this.table = eulerForward(parseFloat(this.start), parseFloat(this.stop), parseFloat(this.timestamp),
+                        parseFloat(this.inputA), parseFloat(this.inputB));
+                    let chartData = [];
+                    chartData.push(["Time", "X"]);
+                    this.table.forEach(function (node) {
+                        chartData.push([node.t, node.x]);
+                    });
+                    this.chartData = chartData;
+                } else if (this.radioGroup === "Euler Backward") {
+                    this.table = eulerBackward(parseFloat(this.start), parseFloat(this.stop), parseFloat(this.timestamp),
+                        parseFloat(this.inputA), parseFloat(this.inputB));
+                    let chartData = [];
+                    chartData.push(["Time", "X"]);
+                    this.table.forEach(function (node) {
+                        chartData.push([node.t, node.x]);
+                    });
+                    this.chartData = chartData;
+                }
+
             }
         }
     } </script>
