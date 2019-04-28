@@ -7,11 +7,11 @@
 
                     <v-divider></v-divider>
 
-                    <v-stepper-step :complete="stepper > 2" step="2">Name of step 2</v-stepper-step>
+                    <v-stepper-step :complete="stepper > 2" step="2">Equation Parameters</v-stepper-step>
 
                     <v-divider></v-divider>
 
-                    <v-stepper-step step="3">Name of step 3</v-stepper-step>
+                    <v-stepper-step step="3">Simulation Parameters</v-stepper-step>
                 </v-stepper-header>
 
                 <v-stepper-items>
@@ -121,7 +121,7 @@
                                 :options="chartOptions"
                                 class="elevation-1"
                         >
-                        >
+                            >
                         </GChart>
                     </v-card-text>
                 </v-card>
@@ -134,6 +134,7 @@
     import eulerForward from './methodsEF';
     import eulerBackward from './methodsEB';
     import {GChart} from "vue-google-charts";
+    import heun from "./methodsHeun";
 
     export default {
         name: "Landing",
@@ -173,26 +174,23 @@
         },
         methods: {
             runAlgo: function () {
+                let chartData = [];
+                chartData.push(["Time", "X"]);
+                let methodToUse = null;
                 if (this.radioGroup === "Euler Forward") {
-                    this.table = eulerForward(parseFloat(this.start), parseFloat(this.stop), parseFloat(this.timestamp),
-                        parseFloat(this.inputA), parseFloat(this.inputB));
-                    let chartData = [];
-                    chartData.push(["Time", "X"]);
-                    this.table.forEach(function (node) {
-                        chartData.push([node.t, node.x]);
-                    });
-                    this.chartData = chartData;
+                    methodToUse = eulerForward;
                 } else if (this.radioGroup === "Euler Backward") {
-                    this.table = eulerBackward(parseFloat(this.start), parseFloat(this.stop), parseFloat(this.timestamp),
-                        parseFloat(this.inputA), parseFloat(this.inputB));
-                    let chartData = [];
-                    chartData.push(["Time", "X"]);
-                    this.table.forEach(function (node) {
-                        chartData.push([node.t, node.x]);
-                    });
-                    this.chartData = chartData;
+                    methodToUse = eulerBackward;
+                } else { // Huen
+                    methodToUse = heun;
                 }
-
+                this.table = methodToUse(parseFloat(this.start), parseFloat(this.stop), parseFloat(this.timestamp),
+                    parseFloat(this.inputA), parseFloat(this.inputB));
+                this.table.forEach(function (node) {
+                    chartData.push([node.t, node.x]);
+                });
+                this.chartData = chartData;
             }
         }
-    } </script>
+    }
+</script>
